@@ -1,0 +1,42 @@
+version: '3.7'
+services:
+  flask:
+    image: chat:1.0
+    container_name: flask
+    networks:
+      - mynet
+    ports:
+      - 5000:5000
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:14.5
+    container_name: postgres
+    networks:
+      - mynet
+    ports:
+      - 5432:5432
+    volumes:
+#      - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+      - dbcontext:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U app -d mydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: app
+      POSTGRES_DB: mydb
+
+
+
+networks:
+  mynet:
+    name: mynet
+
+volumes:
+  dbcontext:
+    name: dbcontext
